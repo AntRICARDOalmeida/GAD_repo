@@ -86,32 +86,35 @@ bar_data = pd.DataFrame({
 
 
 fig = px.bar(
-	bar_data,
-	y="Grupo Muscular",
-	x="Sets Realizados",
-	orientation="h",
-	text="Sets Realizados",
-	color="Sets Realizados",
-	color_continuous_scale="Blues",
+    bar_data,
+    y="Grupo Muscular",
+    x="Sets Realizados",
+    orientation="h",
+    text="Sets Realizados",
+    color_discrete_sequence=["#1f77b4"]  # Cor azul sólida
 )
 for idx, row in bar_data.iterrows():
-	fig.add_shape(
-		type="line",
-		x0=row["Objetivo"], x1=row["Objetivo"],
-		y0=idx-0.4, y1=idx+0.4,
-		line=dict(color="red", width=2, dash="dash"),
-	)
-	fig.add_annotation(
-		x=row["Objetivo"], y=idx,
-		text=f"Objetivo: {row['Objetivo']}",
-		showarrow=False,
-		font=dict(color="red"),
-		xanchor="left"
-	)
-fig.update_layout(yaxis=dict(categoryorder="total ascending"), showlegend=False)
-st.plotly_chart(fig, use_container_width=True)
-
-# --- Resumo dos últimos 5 treinos ---
+    fig.add_shape(
+        type="line",
+        x0=row["Objetivo"], x1=row["Objetivo"],
+        y0=idx-0.4, y1=idx+0.4,
+        line=dict(color="red", width=2, dash="dash"),
+    )
+    fig.add_annotation(
+        x=row["Objetivo"], y=idx,
+        text=f"Obj: {row['Objetivo']}",
+        showarrow=False,
+        font=dict(color="red", size=10),
+        xanchor="left"
+    )
+fig.update_layout(
+    yaxis=dict(categoryorder="total ascending"),
+    showlegend=False,
+    height=400,
+    margin=dict(l=20, r=20, t=20, b=20),
+    font=dict(size=12)
+)
+st.plotly_chart(fig, use_container_width=True)# --- Resumo dos últimos 5 treinos ---
 st.header("Últimos 5 treinos: resumo por grupo muscular")
 ultimas_sessoes = sorted(sessions, key=lambda x: x["session_date"], reverse=True)[:5]
 if ultimas_sessoes:
