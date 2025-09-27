@@ -76,21 +76,17 @@ session_ids = [s["id"] for s in sessions_semana]
 se = supabase.table("session_exercises").select("id, exercise_id, session_id").in_("session_id", session_ids).execute().data or []
 se_ids = [x["id"] for x in se]
 sets = supabase.table("sets").select("id, session_exercise_id").in_("session_exercise_id", se_ids).execute().data or []
-
-# Buscar relações many-to-many entre exercícios e grupos musculares
-exercise_muscle_groups = supabase.table("exercise_muscle_groups").select("exercise_id, muscle_group_id").execute().data or []
+exercises = supabase.table("exercises").select("id, muscle_group_id").execute().data or []
+ex_dict = {e["id"]: e["muscle_group_id"] for e in exercises}
 mg_dict = {g["id"]: g["name"] for g in groups}
 
 sets_por_grupo = {g["name"]: 0 for g in groups}
 for s in sets:
 	se_id = s["session_exercise_id"]
 	ex_id = next((x["exercise_id"] for x in se if x["id"] == se_id), None)
-	if ex_id:
-		# Um set pode contar para vários grupos musculares se o exercício trabalha vários grupos
-		muscle_groups_for_exercise = [emg["muscle_group_id"] for emg in exercise_muscle_groups if emg["exercise_id"] == ex_id]
-		for mg_id in muscle_groups_for_exercise:
-			if mg_id in mg_dict:
-				sets_por_grupo[mg_dict[mg_id]] += 1
+	mg_id = ex_dict.get(ex_id)
+	if mg_id:
+		sets_por_grupo[mg_dict[mg_id]] += 1
 
 bar_data = pd.DataFrame({
 	"Grupo Muscular": list(sets_por_grupo.keys()),
@@ -142,17 +138,13 @@ if ultimas_sessoes:
 		grupos = {}
 		for se_item in se_sess:
 			ex_id = se_item["exercise_id"]
+			mg_id = ex_dict.get(ex_id)
+			grupo_nome = mg_dict.get(mg_id, "-")
 			n_sets = len([s for s in sets if s["session_exercise_id"] == se_item["id"]])
-			
-			# Um exercício pode trabalhar vários grupos musculares
-			muscle_groups_for_exercise = [emg["muscle_group_id"] for emg in exercise_muscle_groups if emg["exercise_id"] == ex_id]
-			for mg_id in muscle_groups_for_exercise:
-				grupo_nome = mg_dict.get(mg_id, "-")
-				if grupo_nome in grupos:
-					grupos[grupo_nome] += n_sets
-				else:
-					grupos[grupo_nome] = n_sets
-		
+			if grupo_nome in grupos:
+				grupos[grupo_nome] += n_sets
+			else:
+				grupos[grupo_nome] = n_sets
 		resumo.append({
 			"Data": data,
 			"Grupos Musculares": ", ".join(grupos.keys()),
