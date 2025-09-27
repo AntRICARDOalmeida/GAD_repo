@@ -124,7 +124,9 @@ fig.update_layout(
     margin=dict(l=20, r=20, t=20, b=20),
     font=dict(size=12)
 )
-st.plotly_chart(fig, use_container_width=True)# --- Resumo dos últimos 5 treinos ---
+st.plotly_chart(fig, use_container_width=True)
+
+# --- Resumo dos últimos 5 treinos ---
 st.header("Últimos 5 treinos: resumo por grupo muscular")
 ultimas_sessoes = sorted(sessions, key=lambda x: x["session_date"], reverse=True)[:5]
 if ultimas_sessoes:
