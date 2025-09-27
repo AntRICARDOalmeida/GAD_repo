@@ -37,19 +37,29 @@ st.header("Volume semanal por grupo muscular")
 if "week_offset" not in st.session_state:
 	st.session_state.week_offset = 0
 
-col1, col2, col3 = st.columns([1,2,1])
+# Controles de navegação e seleção de número de semanas
+col1, col2, col3, col4 = st.columns([1,2,1,1])
 with col1:
 	if st.button("← Semana anterior"):
 		st.session_state.week_offset -= 1
 with col3:
 	if st.button("Semana seguinte →"):
 		st.session_state.week_offset += 1
+with col4:
+	num_weeks = st.selectbox("Nº de semanas", options=[1, 2, 3, 4], index=0, key="num_weeks")
 
+# Cálculo das datas (semanas começam no domingo)
 hoje = datetime.now().date()
-inicio_semana = hoje - timedelta(days=hoje.weekday()) + timedelta(weeks=st.session_state.week_offset)
-fim_semana = inicio_semana + timedelta(days=6)
-proxima_semana = fim_semana + timedelta(days=1)
-st.write(f"Semana: {inicio_semana.strftime('%d/%m/%Y')} a {fim_semana.strftime('%d/%m/%Y')}")
+days_since_sunday = (hoje.weekday() + 1) % 7
+inicio_primeira_semana = hoje - timedelta(days=days_since_sunday) + timedelta(weeks=st.session_state.week_offset)
+inicio_semana = inicio_primeira_semana
+fim_semana = inicio_primeira_semana + timedelta(days=(num_weeks * 7) - 1)
+
+# Display do período
+if num_weeks == 1:
+	st.write(f"Semana: {inicio_semana.strftime('%d/%m/%Y')} a {fim_semana.strftime('%d/%m/%Y')}")
+else:
+	st.write(f"Período: {inicio_semana.strftime('%d/%m/%Y')} a {fim_semana.strftime('%d/%m/%Y')} ({num_weeks} semanas)")
 
 # Buscar todas as sessões e filtrar por data em Python
 import dateutil.parser
@@ -81,7 +91,7 @@ for s in sets:
 bar_data = pd.DataFrame({
 	"Grupo Muscular": list(sets_por_grupo.keys()),
 	"Sets Realizados": list(sets_por_grupo.values()),
-	"Objetivo": [goals_dict.get(g["id"], 0) for g in groups]
+	"Objetivo": [goals_dict.get(g["id"], 0) * num_weeks for g in groups]  # Multiplicar objetivo pelo número de semanas
 })
 
 
@@ -114,7 +124,9 @@ fig.update_layout(
     margin=dict(l=20, r=20, t=20, b=20),
     font=dict(size=12)
 )
-st.plotly_chart(fig, use_container_width=True)# --- Resumo dos últimos 5 treinos ---
+st.plotly_chart(fig, use_container_width=True)
+
+# --- Resumo dos últimos 5 treinos ---
 st.header("Últimos 5 treinos: resumo por grupo muscular")
 ultimas_sessoes = sorted(sessions, key=lambda x: x["session_date"], reverse=True)[:5]
 if ultimas_sessoes:
