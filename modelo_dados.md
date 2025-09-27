@@ -9,6 +9,10 @@
 ### 2. exercises
 - id (serial, PK)
 - name (string, único)
+
+### 2b. exercise_muscle_groups (nova tabela para relação many-to-many)
+- id (serial, PK)
+- exercise_id (FK → exercises.id)
 - muscle_group_id (FK → muscle_groups.id)
 
 ### 3. sessions
@@ -32,7 +36,7 @@
 ---
 
 ## Relações
-- Um exercício pertence a um grupo muscular.
+- Um exercício pode pertencer a vários grupos musculares (relação many-to-many).
 - Uma sessão pode ter vários exercícios.
 - Cada exercício numa sessão pode ter vários sets (com carga e reps).
 
